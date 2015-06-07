@@ -1,0 +1,360 @@
+#+TITLE: Passwords
+#+AUTHOR: Todd Smith
+#+LANGUAGE: en
+#+STARTUP: showall
+
+* Attacks on Passwords
+  The attacks on passwords vary.  ATM banks accounts are protected
+  with short simple PINs, while private PGP keys must be protected
+  with long difficult passwords.  The reasons that different passwords
+  need to differ in strength is that the attacks on different passwors vary.
+
+  Password protected web sites may be hard for adversarys to attack.  Some
+  email sites allow only a small number of attempts to login before locking
+  the account.  Some SSH servers allow only a small number of attempts, 
+  perhaps six, each minute. Direct brute force attack against such services
+  are unlikely to succeed with only modestly complex passwords.
+
+  The greatest risk is to passwords that can be attacked offline, directly 
+  by the adversary's own hardware. If a service's password list can be
+  stolen by evil hackers, then all the passwords at once (perhaps millions)
+  can be attacked in parallel on using specialized password cracking 
+  software and hardware.
+
+  Some passwords are protect sensitive information that could result in 
+  a substantial loss to the user relying on the password.  Bitcoins are
+  protected by passwords and inadequate passwords could result in substantial
+  financial loss, or the loss of a user's private key could mean the 
+  decryption of all protected email communication spanning many months.
+
+** Simple Guessing Attacks
+   Many users use easy to guess passwords like pet names, birthdates,
+   or simple key sequences.  Such passwords have a real risk of being simply
+   guessed.  Although social engineering attacks [[http://en.wikipedia.org/wiki/Phishing][phishing]] can trick
+   users into directly revealing their passwords to adversarys; 
+   more subtle directed attachs, such as spear phishing can cause users
+   to reveal private information that can aid in guessing attacks against
+   passwords.
+
+** Brute Force Attacks
+   Passwords are usually not stored on servers because of the risk of loss
+   to outside evil hackers or inside corrupt employees.  Not long after the 
+   first multi-user computers it was recognized that 
+   passwords should not be stored by the operating system in plain text.
+
+   In the early 1970's Unix did not stor user passwords and instead stored 
+   the result of a 
+   cryptographic function being applied to the passwords.  The passwords
+   were not simply encrypted, but were mangled in a way that was beleived
+   could not be reversed, they were said to be hashed (as food is chopped
+   and stired until it has no resemblance to the original ingredients).
+   Although weak by modern cryptographic standards
+   the methods employed by the early version of the Unix operating system
+   were in principle the methods employed today.  
+   A hash function transforms the password into a string of bytes
+   and the password is *not* stored while the resulting bytes are.
+   Authenticating the user involves performing the hash on the password
+   submitted during each login and comparing the result to the previously stored 
+   string of bytes associated with that user's password.
+   A match means7 the user is believed to be in possession of 
+   a legitimate password.
+   In this way, given reasonable assumptions about the nature of the hash
+   function being applied to the passwords, authentication can take place
+   without storing the user passwords.
+
+   As modern cryptography developed, so did the strength of these kinds of
+   hash functions.  Modern cryptographic hash functions are designed to 
+   avoid collisions (where two passwords might hash to the same result)
+   and to avoid being inverted (where a result, stored on the computer,
+   could be fed into a new function that would give back the original
+   password). MD5 and now the stronger SHA families of hash functions
+   were designed with these goals. [[http://en.wikipedia.org/wiki/Cryptographic_hash_function][Cryptographic hash functions]] 
+   have become an essential
+   part of cryptography and there are ongoing efforts to develop better and
+   better ones.
+
+   Once an adversary obtains the list of hashed password strings, perhaps 
+   from an inside confederate or by hacking into the system storing the 
+   passwords or even though a simple mistake such as allowing a backup drive
+   to be stolen, the adversary can attempt *brute force* attacks against
+   the hashed results.  Such an attack might start with the letter "a" as
+   a potential password, next try "b", and then work its way through all
+   the possible one letter passwords before trying "aa" and then "ab" and 
+   so forth. Each potential password is hashed an then the result is compared
+   to the stolen list of hash results.  If a match, say of the candidate
+   password "xyz" hash result, is found in the list, the hacker can now login
+   as the user that had the password "xyz".
+
+*** Speeding Up Brute Force
+    The bad guys have a number of way of speeding up brute force attacks.
+
+**** Well Known Passwords
+     Since most users passwords are far from random, a simpld way to speed
+     up attacks is to try the most commonly used passwords first. Some of
+     these lists contain 1.5 million passwords.  
+     
+**** Rainbow Tables
+     Because there are only a few well-studied cryptographic hashes believed
+     to be safe from non-bute force methods.  Attackers can use lists of the 
+     most common passwords and precompute the hash results for each of these 
+     common passwords.  By spending months attackers can build up extensive
+     lists of the results of applying important hash functions against 
+     hundreds of thousands of passwords.  The result of these precomputed
+     hashs are called /rainbow tables/.
+
+     Most sophisticated user authentication systems are not as simple as
+     I've described above; nevertheless, rainbow tables have been used
+     to successfully penitrate many widely used systems, such as Microsoft's
+     LAN Manager.
+
+**** Special Software
+     Password cracking software can apply the common transformations used
+     by users to passwords such as capitalizing the first or the last letter
+     of words or by appending digits to the words found in the common 
+     password lists.
+
+     The cryptographic hash functions can be coded very carefully in 
+     assembly language to run as fast as possible.
+
+**** Parallel Processing
+     Video graphics cards are capable of large numbers of parallel calculations.
+     Special password cracking hardware using many of these cards at once has
+     achieved hundreds of billions of password attempts each second. It is 
+     believed that classified, much more powerful password cracking hardware is
+     available to the NSA.
+
+**** TODO Quantum Computers
+**** TODO Cryptographic Attacks
+
+*** Slowing Down Brute Force
+    Once the password hashes are in the possession of an adversary the only 
+    thing that stands between the evil hacker and the reconstruction of a
+    user's password is the hash used to protect it.  If the hash can be
+    computed quickly many billions of attempts per second can be made against 
+    the password.  There are techniques that are used to slow down brute force 
+    attacks.
+
+    Rainbow tables can be made less useful by stoing an 
+    unpredictable string with the user's account information.  This string,
+    called a /salt/, is stored as plain text and is likely to be available 
+    to the hacker if the password authentication database has been stolen.
+    The system uses the salt to make the user's submitted password longer
+    and more unpredictable.  Everytime the system checks a submitted password
+    it appends the salt string and then applies the hash function.  Because
+    every use has a different salt precomputed rainbow tables won't help because
+    they are computed against the most common /unadorned/ passwords.
+
+    To slow down software and hardware capable of computing billions of hashes
+    per second, hash functions have been designed that run more slowly (see
+    [[http://en.wikipedia.org/wiki/Bcrypt][bcrypt]], [[http://en.wikipedia.org/wiki/PBKDF2][PBKDF2]], and [[http://en.wikipedia.org/wiki/Scrypt][scrypt]]).  One limitation on making the hash function 
+    run slowly on an attackers machine is that may also have to run on a 
+    users ordinary hardware (such as a smart-phone) that isn't as powerful
+    as the attackers hardware.  A few seconds on a phone may be the acceptable
+    limit that a use will wait to decrypt a secure email.  Hardware that runs
+    these hashes a million times faster will still be able to attempt 
+    hundreds of thousands of passwords per second.
+
+*** Decreasing the Value of Password Attacks
+**** TODO Multifactor Authentition
+**** TODO Forward Secrecy
+
+* Measuring the Strength of Passwords
+  In order to understand recommendations for the strength of passwords, we
+  will assume that they are random values generated from some large set of 
+  candidates
+  and that they are all equally likely. These are reasonable assumptions for
+  our generated passwords.
+
+  *Note:* It is important to keep in mind that human
+  generated passwords do not have these characteristics.  Consequently, it
+  may be misleading to apply the techniques discussed here to measure the
+  strength of human selected passwords.
+
+  The size of the set of all candidate passwords should be very large. Since
+  adversaries may be able to try hundreds of billions of passwords each second
+  our passwords will resiste such attacks for only a few seconds unless pulled
+  from a set of trillions of possibilites.  Using bits to measure the size
+  of these keyspaces is useful and under our assumptions corresponds to the
+  [[http://en.wikipedia.org/wiki/Entropy][entropy]] of our generated passwords.  If the size of our keyspace is $N$
+  Then the number of bits needed to enumerate all possible passwords is
+  $\log_2(N)$.
+
+  For example, random passwords composed of four digits have a key space of
+  ten-thousand possible values and we would say that a random password from 
+  this set would have an entropy of $\log_2(10000)$ bits or 13.3 bits.
+
+  How many bits of entropy do we need? It depends on the nature of the attack.
+  Assuming the worst we can work with the following:
+
+  - Attacker is well funded suggesting attempts at $5*10^11$ per second.
+  - Attack happens in the future when hardware is faster[fn:1]. So we
+    should add a speedup factor of at least 16.
+  - Some modest cryptographic breakthroughs enable faster attacks.  Adding
+    an additional speedup factor of 16.
+  - One year of processing time is devoted to breaking the password.  There
+    are approximately $3*10^7$ seconds in a year.
+
+  Our hypothetical attacker will attempt $5*10^11 * 16 * 16 * 3*10^7$ 
+  passwords.  This is almost 4,000,000,000,000,000,000,000 attempts! Shifting
+  to base 2 we see that this consumes over 71 bits of any entropy in our 
+  passwords.  Passwords with over 71 bits of entropy should be considered 
+  safe today (in 2015) against anyone other than the NSA.
+
+* Using Passwords for Keys
+** TODO Key Stretching
+
+* Classes of Random Passwords
+  Quantifying the strength of our randomly generated passwords depends on the
+  size of the space from which they are drawn.  The following table describes
+  several kinds of passwords along with the entropy for each character or symbol
+  or word used to build up the password or passphrase.
+
+  | Class     | Description                    | Entropy per symbol (word) |
+  |-----------+--------------------------------+---------------------------|
+  | DIGITS    | 0 through 9 only               |                       3.3 |
+  | LOWER     | lower case only                |                       4.7 |
+  | ALPHA     | upper and lower case           |                       5.7 |
+  | ALPHANUM  | upper, lower case and digits   |                       6.0 |
+  | MIXED     | all 93 ascii chars on keyboard |                       6.6 |
+  | WORDS1K   | 1000 words                     |                      10.0 |
+  | DICE      | 7776 diceware word list        |                      12.9 |
+  | WORDS10K  | 10000 words                    |                      13.3 |
+  | WORDS100K | 100000 words                   |                      16.6 |
+
+  For example, a random four word password selected from the [[http://world.std.com/~reinhold/diceware.html][Diceware]] word list
+  has $4*12.9$ bits of entropy just shy of 52 bits of entropy.  Not enough
+  for high security by our analysis above.
+
+* Strength Table
+  The following table summarizes the strength of various length passwords
+  using bits of entropy as the measure.
+
+** Building Blocks -- One Symbol
+
+  | Bits | N | From      |
+  |------+---+-----------|
+  |  3.3 | 1 | DIGITS    |
+  |  4.7 | 1 | LOWER     |
+  |  5.7 | 1 | ALPHA     |
+  |  6.0 | 1 | ALNUM     |
+  |  6.6 | 1 | MIXED     |
+  | 10.0 | 1 | WORDS1k   |
+  | 12.9 | 1 | DICE      |
+  | 13.3 | 1 | WORDS10k  |
+  | 16.6 | 1 | WORDS100k |
+
+** Very Weak Passwords
+
+  | Bits |  N | From      |
+  |------+----+-----------|
+  | 16.6 |  5 | DIGITS    |
+  | 17.1 |  3 | ALPHA     |
+  | 17.9 |  3 | ALNUM     |
+  | 18.8 |  4 | LOWER     |
+  | 19.7 |  3 | MIXED     |
+  | 19.9 |  2 | WORDS1k   |
+  | 25.8 |  2 | DICE      |
+  | 26.6 |  2 | WORDS10k  |
+
+** Moderate Passwords
+
+  | Bits |  N | From      |
+  |------+----+-----------|
+  | 47.6 |  8 | ALNUM     |
+  | 49.8 |  3 | WORDS100k |
+  | 49.8 |  5 | WORDS1k   |
+  | 49.8 | 15 | DIGITS    |
+  | 51.3 |  9 | ALPHA     |
+  | 51.7 |  4 | DICE      |
+  | 51.7 | 11 | LOWER     |
+  | 52.6 |  8 | MIXED     |
+  | 53.2 |  4 | WORDS10k  |
+
+** Very Strong Passwords
+
+  | Bits |  N | From     | Notes                 |
+  |------+----+----------+-----------------------|
+  | 72.3 | 11 | MIXED    |                       |
+  | 73.1 | 22 | DIGITS   |                       |
+  | 74.1 | 13 | ALPHA    |                       |
+  | 75.2 | 16 | LOWER    |                       |
+  | 77.4 | 13 | ALNUM    |                       |
+  | 77.5 |  6 | DICE     | Arnold Reinhold[fn:2] |
+  | 79.7 |  8 | WORDS1k  |                       |
+  | 79.7 |  6 | WORDS10k |                       |
+
+** No Feasible Brute Force Attacks
+
+  | Bits |  N | From      | Notes                |
+  |------+----+-----------+----------------------|
+  | 78.8 | 12 | MIXED     | Bruce Schneier[fn:3] |
+  | 79.7 |  8 | WORDS1k   |                      |
+  | 79.7 |  6 | WORDS10k  |                      |
+  | 79.7 | 24 | DIGITS    |                      |
+  | 79.8 | 14 | ALPHA     |                      |
+  | 79.9 | 17 | LOWER     |                      |
+  |------+----+-----------+----------------------|
+  | 83.0 |  5 | WORDS100k |                      |
+  | 83.0 | 25 | DIGITS    |                      |
+  | 83.4 | 14 | ALNUM     |                      |
+  | 84.6 | 18 | LOWER     |                      |
+  | 85.4 | 13 | MIXED     |                      |
+  | 85.5 | 15 | ALPHA     |                      |
+  | 89.7 |  9 | WORDS1k   |                      |
+  | 90.5 |  7 | DICE      |                      |
+  | 93.0 |  7 | WORDS10k  |                      |
+
+** 128 Bit Keyspace
+   128 bits is the NSA recommendation for classified SECRET documents.
+
+  |  Bits |  N | From      |
+  |-------+----+-----------|
+  | 129.2 | 10 | DICE      |
+  | 129.6 | 13 | WORDS1k   |
+  | 129.6 | 39 | DIGITS    |
+  | 131.0 | 22 | ALNUM     |
+  | 131.1 | 23 | ALPHA     |
+  | 131.4 | 20 | MIXED     |
+  | 131.6 | 28 | LOWER     |
+  | 132.9 |  8 | WORDS100k |
+  | 132.9 | 10 | WORDS10k  |
+
+** 256 bit Keyspace
+   256 bits is the NSA recommendation for classified TOP SECRET documents.
+
+  |  Bits |  N | From      |
+  |-------+----+-----------|
+  | 256.0 | 43 | ALNUM     |
+  | 256.2 | 39 | MIXED     |
+  | 256.5 | 45 | ALPHA     |
+  | 258.5 | 20 | DICE      |
+  | 258.5 | 55 | LOWER     |
+  | 259.1 | 78 | DIGITS    |
+  | 259.1 | 26 | WORDS1k   |
+  | 265.8 | 16 | WORDS100k |
+  | 265.8 | 20 | WORDS10k  |
+
+* Guidelines
+** TODO Don't Introduce Bias
+** TODO Storing Passwords
+
+* TODO The Word Lists
+** Original Diceware List
+** Alan Beale's Diceware List
+** Todd Smith's Diceware List
+** Todd Smith's 1000 Word List
+** Todd Smith's 10,000 Word List
+** Todd Smith's 100,000 Word List
+
+* Generating Passwords
+** TODO Offline
+** TODO On Trusted Computer
+
+[fn:1] It is safe to assume that Moore's Law will continue to hold for the
+kind of hardware used to attack passwords.  Each 18 months we assume that
+hardware doubles in speed.
+
+[fn:2] [[http://diceware.blogspot.com/2014/03/time-to-add-word.html][Diceware Security Blog]]
+
+[fn:3] [[https://www.schneier.com/blog/archives/2014/03/choosing_secure_1.html][Choosing Secure Passwords]]
+  
