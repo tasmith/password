@@ -141,7 +141,7 @@
     The system uses the salt to make the user's submitted password longer
     and more unpredictable.  Everytime the system checks a submitted password
     it appends the salt string and then applies the hash function.  Because
-    every use has a different salt precomputed rainbow tables won't help because
+    every user has a different salt, precomputed rainbow tables won't help because
     they are computed against the most common /unadorned/ passwords.
 
     To slow down software and hardware capable of computing billions of hashes
@@ -150,9 +150,9 @@
     run slowly on an attackers machine is that may also have to run on a 
     users ordinary hardware (such as a smart-phone) that isn't as powerful
     as the attackers hardware.  A few seconds on a phone may be the acceptable
-    limit that a use will wait to decrypt a secure email.  Hardware that runs
+    limit that a user will wait to decrypt a secure email.  Hardware that runs
     these hashes a million times faster will still be able to attempt 
-    hundreds of thousands of passwords per second.
+    hundreds of thousands of passwords per second (which is better than billions).
 
 *** Decreasing the Value of Password Attacks
 **** TODO Multifactor Authentition
